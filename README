@@ -1,0 +1,13 @@
+This project has a first look at reading the AST of a Java file to generate a Unit test
+retrospectively. 
+
+It addresses the question here:
+http://stackoverflow.com/questions/5404680/code-generating-junit-based-on-abstract-syntax-tree-walk
+
+This comment is particularly interesting in relation to this project:
+
+The "simplest" case requires parsing the code of the method to be tested into ASTs, name/type resolving everything so you know the meaning of all the symbols (you have to know that val in an integer), and determining the control flows through the code, and the predicates that control them.
+
+With that information, you can essentially enumerate valid control-flow paths, picking up information about the predicates along the path for each one, forming in essence a conjunction of all the conditions along that path. (In your example, if .. val%2 ... return true; is one path, controlled by val%2==true). You get to worry about modelling how side effects in the path affect the various predicates. And you'd like to range information on integers (and sizes of strings and arrays, etc.).
+
+Then for each path, you need to generate a set of input arguments that makes the path predicate true; given that this predicate could be pretty complicated, you'll likely need some kind of SAT solver. With solutuions to the path predicate, you now need to generate ASTs corresponding to to tests (e.g., set up variables to enable the method arguments to satisy the predicate; for simple integer equations, you can likely just generate expressions for the arguments as in your example). Finally, assemble the test calls into an AST for a method, insert into an AST representing a unit test case method, and prettyprint the result.
